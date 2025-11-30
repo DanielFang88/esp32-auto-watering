@@ -29,7 +29,7 @@ Built from scratch with ESP32-S3 — because forgetting to water plants is unacc
 | Jumper wires                           | DuPont heaven                     |
 
 ## Wiring Diagram
-<img src="docs/schematic.jpg" width="700">
+<img src="docs/esp32-s3_devkitc-1_pinlayout_v1.1.jpg" width="900" alt="ESP32 Garden Wiring Diagram">
 
 ## Quick Start
 ```bash

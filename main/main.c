@@ -1,47 +1,29 @@
-#include <stdio.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "driver/gpio.h"
-#include "driver/adc.h"
-#include "esp_log.h"
-#include "relay.h"
 #include "soil_sensor.h"
+#include "relay.h"
+#include "esp_log.h"
 
 static const char* TAG = "GARDEN";
 
 void watering_task(void* pvParameters)
 {
-    const uint32_t WATERING_DURATION_MS = 8000;   // 水浇 8 秒
-    const uint32_t CHECK_INTERVAL_MS    = 60000;  // 每分钟检查一次
+    const uint32_t STABLE_DRY_TIME_MS = 10000;   // Water only after 10 seconds of dry
+    const float    DRY_THRESHOLD      = 35.0f;   // active when lower than 35%
+    const uint32_t WATERING_TIME_MS   = 8000;    // adjustable
 
     while (1) {
         float moisture = soil_get_moisture_percent();
+        ESP_LOGI(TAG, "Filtered moisture: %.1f%%", moisture);
 
-        ESP_LOGI(TAG, "Current soil moisture: %.1f%%", moisture);
-
-        if (moisture < 35.0f) {                        // 低于 35% 就浇水
-            ESP_LOGW(TAG, "Soil too dry! Starting watering...");
-            relay_open();                             // NC 方案：HIGH = 出水
-            vTaskDelay(pdMS_TO_TICKS(WATERING_DURATION_MS));
-            relay_close();                            // LOW = 停水
-            ESP_LOGI(TAG, "Watering finished");
+        // Three layers 
+        if (soil_is_stable_dry(STABLE_DRY_TIME_MS, DRY_THRESHOLD)) {
+            ESP_LOGW(TAG, "Stable dry detected for 10s → Starting 8s watering");
+            relay_open();
+            vTaskDelay(pdMS_TO_TICKS(WATERING_TIME_MS));
+            relay_close();
+            ESP_LOGI(TAG, "Quantitative watering finished");
+            vTaskDelay(pdMS_TO_TICKS(300000));  // Does not repeat in 5 minutes
         } else {
-            ESP_LOGI(TAG, "Soil moisture OK, sleeping...");
+            vTaskDelay(pdMS_TO_TICKS(2000));
         }
-
-        vTaskDelay(pdMS_TO_TICKS(CHECK_INTERVAL_MS));
     }
-}
-
-void app_main(void)
-{
-    ESP_LOGI(TAG, "=======================================");
-    ESP_LOGI(TAG, " ESP32-S3 Smart Garden Node v1.0");
-    ESP_LOGI(TAG, " Auto watering when soil < 35%%");
-    ESP_LOGI(TAG, "=======================================");
-
-    soil_sensor_init();
-    relay_init();
-
-    xTaskCreate(watering_task, "watering", 4096, NULL, 5, NULL);
 }
