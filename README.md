@@ -1,22 +1,35 @@
+<div align="center">
+
+<img src="assets/watering_pixel.png" width="256" alt="Pixel Art Watering">
+
 # ESP32-S3 Smart Garden Auto-Watering System
 
-A low-cost, fully wireless, multi-node automatic plant watering system  
-Built with ESP32-S3 + Capacitive Soil Moisture Sensor + 12V Solenoid Valve
+**Never let your plants die of thirst again.**
 
-## Features
-- Real-time capacitive soil moisture monitoring
-- Reliable 12V solenoid valve control (NC safe scheme)
-- ESP-IDF native, no Arduino framework
-- Ready for ESP-NOW mesh, deep-sleep, OTA, Web provisioning
+A fully open-source, pixel-art powered, ultra-low-cost automatic plant watering node  
+Built from scratch with ESP32-S3 — because forgetting to water plants is unacceptable
 
-## Hardware
-- ESP32-S3 development board (any with USB)
-- Capacitive Soil Moisture Sensor v2 (3.3–5.5V, Gravity)
-- 12V solenoid valve + 12V/2A power adapter
-- 1-channel relay module (3.3V logic compatible)
+</div>
 
-## Wiring
-See [docs/schematic.jpg](docs/schematic.jpg)
+## Core Features
+- Real-time capacitive soil moisture sensing with **moving average filter** (noise killer)  
+- Smart 10-second stable-dry detection (no false triggers)  
+- Quantitative watering (fixed 8 s burst)  
+- Safe NC relay control (failsafe when MCU crashes)  
+- ESP-IDF native – zero Arduino bloat  
+- Pixel-art boot animation (because aesthetics matter)
+
+## Hardware (≈ $12 total)
+| Component                              | Note                              |
+|----------------------------------------|-----------------------------------|
+| ESP32-S3 dev board                     | Any with USB                      |
+| Capacitive Soil Moisture Sensor v2     | 3.3–5.5V Gravity version          |
+| 12V solenoid valve + 12V/2A adapter    | Normally closed                   |
+| 1-channel relay module                 | 3.3V logic compatible             |
+| Jumper wires                           | DuPont heaven                     |
+
+## Wiring Diagram
+<img src="docs/schematic.jpg" width="700">
 
 ## Quick Start
 ```bash
