@@ -1,0 +1,8 @@
+build/
+sdkconfig
+sdkconfig.old
+dependencies.lock
+.vscode/
+pycache/
+*.pyc
+.DS_Store

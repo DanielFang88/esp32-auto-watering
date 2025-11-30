@@ -1,26 +1,24 @@
-# ESP32-S3 花园自动浇水系统  
+# ESP32-S3 Smart Garden Auto-Watering System
 
-一个基于 ESP32-S3 的超低成本全无线花园自动浇水节点
+A low-cost, fully wireless, multi-node automatic plant watering system  
+Built with ESP32-S3 + Capacitive Soil Moisture Sensor + 12V Solenoid Valve
 
-## 硬件清单
-- ESP32-S3 开发板（带 USB）
-- 电容式土壤湿度传感器（Gravity 3.3V版）
-- 12V 电磁阀 + 12V 电源
-- 1路继电器模块（支持3.3V触发）
-- 杜邦线若干
+## Features
+- Real-time capacitive soil moisture monitoring
+- Reliable 12V solenoid valve control (NC safe scheme)
+- ESP-IDF native, no Arduino framework
+- Ready for ESP-NOW mesh, deep-sleep, OTA, Web provisioning
 
-## 功能（开发中）
-- [x] 土壤湿度实时监测
-- [x] 继电器精准控制电磁阀
-- [ ] 阈值自动浇水
-- [ ] ESP-NOW 多节点无线组网
-- [ ] 低功耗深睡
-- [ ] Web配网 + OTA
+## Hardware
+- ESP32-S3 development board (any with USB)
+- Capacitive Soil Moisture Sensor v2 (3.3–5.5V, Gravity)
+- 12V solenoid valve + 12V/2A power adapter
+- 1-channel relay module (3.3V logic compatible)
 
-## 接线图
-见 [/docs/hardware_schematic.jpg](/docs/hardware_schematic.jpg)
+## Wiring
+See [docs/schematic.jpg](docs/schematic.jpg)
 
-## 烧录方法
+## Quick Start
 ```bash
 idf.py set-target esp32s3
 idf.py menuconfig
