@@ -3,56 +3,45 @@
 #include "freertos/task.h"
 #include "driver/gpio.h"
 #include "driver/adc.h"
-#include "esp_adc_cal.h"
 #include "esp_log.h"
-
-#define RELAY_GPIO      18
-#define SOIL_ADC_CH     ADC1_CHANNEL_3    // GPIO4
+#include "relay.h"
+#include "soil_sensor.h"
 
 static const char* TAG = "GARDEN";
 
-void relay_task(void* pvParameters)
+void watering_task(void* pvParameters)
 {
-    gpio_reset_pin(RELAY_GPIO);
-    gpio_set_direction(RELAY_GPIO, GPIO_MODE_OUTPUT);
+    const uint32_t WATERING_DURATION_MS = 8000;   // 水浇 8 秒
+    const uint32_t CHECK_INTERVAL_MS    = 60000;  // 每分钟检查一次
 
     while (1) {
-      
-        gpio_set_level(RELAY_GPIO, 0);
-        ESP_LOGI(TAG, "[RELAY] Valve CLOSED (watering stopped)");
-        vTaskDelay(pdMS_TO_TICKS(5000));
+        float moisture = soil_get_moisture_percent();
 
-        gpio_set_level(RELAY_GPIO, 1);
-        ESP_LOGI(TAG, "[RELAY] Valve OPEN (watering...)");
-        vTaskDelay(pdMS_TO_TICKS(5000));
-    }
-}
+        ESP_LOGI(TAG, "Current soil moisture: %.1f%%", moisture);
 
-void soil_task(void* pvParameters)
-{
-    adc1_config_width(ADC_WIDTH_BIT_12);
-    adc1_config_channel_atten(SOIL_ADC_CH, ADC_ATTEN_DB_11);
+        if (moisture < 35.0f) {                        // 低于 35% 就浇水
+            ESP_LOGW(TAG, "Soil too dry! Starting watering...");
+            relay_open();                             // NC 方案：HIGH = 出水
+            vTaskDelay(pdMS_TO_TICKS(WATERING_DURATION_MS));
+            relay_close();                            // LOW = 停水
+            ESP_LOGI(TAG, "Watering finished");
+        } else {
+            ESP_LOGI(TAG, "Soil moisture OK, sleeping...");
+        }
 
-    while (1) {
-        int raw = adc1_get_raw(SOIL_ADC_CH);
-        float volt = raw * 3.3f / 4095.0f;
-
-        ESP_LOGI(TAG, "[SOIL] Raw=%d  Voltage=%.3fV  %s", raw, volt,
-                 raw > 3200 ? "DRY!!!" :
-                 raw > 2200 ? "A bit dry" :
-                 raw > 1200 ? "Good" : "Wet");
-
-        vTaskDelay(pdMS_TO_TICKS(2000));
+        vTaskDelay(pdMS_TO_TICKS(CHECK_INTERVAL_MS));
     }
 }
 
 void app_main(void)
 {
-    ESP_LOGI(TAG, "===================================");
-    ESP_LOGI(TAG, " ESP32-S3 Garden Node Started");
-    ESP_LOGI(TAG, " Soil sensor on GPIO4, Relay on GPIO18 (NC mode)");
-    ESP_LOGI(TAG, "===================================");
+    ESP_LOGI(TAG, "=======================================");
+    ESP_LOGI(TAG, " ESP32-S3 Smart Garden Node v1.0");
+    ESP_LOGI(TAG, " Auto watering when soil < 35%%");
+    ESP_LOGI(TAG, "=======================================");
 
-    xTaskCreate(soil_task, "soil", 2048, NULL, 5, NULL);
-    xTaskCreate(relay_task, "relay", 2048, NULL, 5, NULL);
+    soil_sensor_init();
+    relay_init();
+
+    xTaskCreate(watering_task, "watering", 4096, NULL, 5, NULL);
 }
